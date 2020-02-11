@@ -61,9 +61,39 @@ I'为校正后的图像，通过双线性差值从原图I中采样得到。
 
 
 
-## 3.2 识别网络ASRN
+## 3.2 识别网络Attention-based Sequence Recognition Network
 
+<img src="images/8.png" alt="ASRN结构" style="zoom:80%;" />
 
+### 3.2.1 网络结构
+
+CNN+BLSTM结构
+
+需要固定最大序列长度T，当预测‘’EOS‘’ 时停止
+
+### 3.2.2 Fractional Pickup
+
+针对一些由于噪声干扰而产生的错误预测，提出了一种方法，Fractional Pickup
+
+<img src="images/10.png" alt="fp" style="zoom:80%;" />
+
+做法：对attention参数进行修改
+
+<img src="images/9.png" alt="attention" style="zoom:75%;" />
+
+优点：
+
+**1.Variation of Distribution**
+
+参数和相邻features有关，且具有随机性，即使对于同一张图片，每个step产生的贡献可能是不同的，增强了attention的鲁棒性，容易避免过拟合。
+
+**2.Shortcut of Forward Propagation**
+
+通过FP建立了一个从k+1步到k步的shortcut，它保留了之前step中的一部分特征。
+
+**3.Broader Visual Field**
+
+没有FP的情况下，特征向量 $h^{k}$ 的误差项为
 
 ## 3.3 训练策略
 
