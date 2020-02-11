@@ -1,5 +1,7 @@
 # MORAN: A Multi-Object Rectified Attention Network for Scene Text Recognition
 
+https://arxiv.org/pdf/1901.03003.pdf
+
 # 1.概述
 
 端到端的识别模型，主要解决**不规则场景文本的识别**，MORAN网络由校正网络MORN，识别网络ASRN组成。在MORN中设计了一种**像素级弱监督学习机制**用于校正不规则文本，降低了不规则文本的识别难度
@@ -93,14 +95,46 @@ CNN+BLSTM结构
 
 **3.Broader Visual Field**
 
-没有FP的情况下，特征向量 $h^{k}$ 的误差项为
+没有FP的情况下，特征向量的误差项只和一个固定的参数相关
+
+![no fp](images/11.png)
+
+加入了FP后，结果与当前和相邻的features都有关
+
+![with fp](images/12.png)
 
 ## 3.3 训练策略
+
+作者在训练时发现MORAN网络在训练时，两个子网络会相互阻碍，**导致训练不充分**，有两种情况：
+
+1.ASRN训练很好，正确识别图像，MORN无法校正图像
+
+2.ASRN不鲁棒，因为MORN校正图像效果很好
+
+
+
+**因此采用一个three-step process来解决这个问题**
+
+**第一个阶段**：**用规则样本训练ASRN**。样本有紧凑的文本框，可以从大图中取出文本框。然后用最小外接矩形裁剪文本框，得到不规则样本
+
+**第二个阶段：**固定ASRN的参数，用ASRN来引导MORN**训练不规则样本**。如果MORN对图像的校正不好，没有降低不规则文本识别难度，那么MORN的优化无法进行。只有降低识别难度才能为MORN提供正面反馈。
+
+**第三个阶段：**把ASRN和MORN合起来训练
 
 
 
 ## 4.实验结果
 
+1.环境配置：pytorch，CUDA8.0，CuDNN v7，gtx1080ti
+
+2.识别速度：10.4ms 识别字符长度为5的图片
+
+![实验结果](images/13.png)
 
 
-## 5.总结
+
+## 5.缺点
+
+弯曲角度过大时，校正会失败
+
+![校正失败](images/14.png)
