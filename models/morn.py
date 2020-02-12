@@ -1,3 +1,5 @@
+# * utf-8 *
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -5,13 +7,22 @@ import numpy as np
 
 class MORN(nn.Module):
     def __init__(self, nc, targetH, targetW, inputDataType='torch.cuda.FloatTensor', maxBatch=256, CUDA=True):
+        """
+        MORN校正网络初始化
+        :param nc: 图像channel
+        :param targetH: 原图高度
+        :param targetW: 原图宽度
+        :param inputDataType: 元素数据类型
+        :param maxBatch: Batchsize
+        :param CUDA: GPU支持
+        """
         super(MORN, self).__init__()
         self.targetH = targetH  # 输入图片高度
         self.targetW = targetW  # 输入图片宽度
         self.inputDataType = inputDataType
         self.maxBatch = maxBatch
         self.cuda = CUDA
-
+        # MORN网络结构，最后一层输出维度变为[1,3,11]与论文中不同
         self.cnn = nn.Sequential(
             nn.MaxPool2d(2, 2), 
             nn.Conv2d(nc, 64, 3, 1, 1), nn.BatchNorm2d(64), nn.ReLU(True), nn.MaxPool2d(2, 2),
@@ -23,41 +34,55 @@ class MORN(nn.Module):
 
         self.pool = nn.MaxPool2d(2, 1)
 
+        # shape (32,) value [-1,1]
         h_list = np.arange(self.targetH)*2./(self.targetH-1)-1
+        # shape (100,) value [-1,1]
         w_list = np.arange(self.targetW)*2./(self.targetW-1)-1
 
+        # 生成原图坐标矩阵basic grid [2,32,100] top-left(-1,-1)
         grid = np.meshgrid(
                 w_list, 
                 h_list, 
                 indexing='ij'
             )
         grid = np.stack(grid, axis=-1)
-        grid = np.transpose(grid, (1, 0, 2))
+        grid = np.transpose(grid, (1, 0, 2))  # shape [32,100,2]
         grid = np.expand_dims(grid, 0)
-        grid = np.tile(grid, [maxBatch, 1, 1, 1])
-        grid = torch.from_numpy(grid).type(self.inputDataType)
+        grid = np.tile(grid, [maxBatch, 1, 1, 1])  # [batch,32,100,2]
+        grid = torch.from_numpy(grid).type(self.inputDataType)  # numpy to tensor
         if self.cuda:
             grid = grid.cuda()
             
         self.grid = Variable(grid, requires_grad=False)
-        self.grid_x = self.grid[:, :, :, 0].unsqueeze(3)
-        self.grid_y = self.grid[:, :, :, 1].unsqueeze(3)
+        # 将grid分成x和y两部分
+        self.grid_x = self.grid[:, :, :, 0].unsqueeze(3)  # 横坐标x [64,32,100,1]
+        self.grid_y = self.grid[:, :, :, 1].unsqueeze(3)  # 纵坐标y [64,32,100,1]
 
     def forward(self, x, test, enhance=1, debug=False):
+        """
+        MORN前向传播过程
+        :param x: 输入特征
+        :param test: 训练or测试
+        :param enhance:
+        :param debug: debug模式
+        :return:校正后的图像
+        """
 
         if not test and np.random.random() > 0.5:
-            return nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear')
+            return nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear') # 特征上采样至原图大小
         if not test:
             enhance = 0
 
+        # 参数检查
         assert x.size(0) <= self.maxBatch
         assert x.data.type() == self.inputDataType
-
+        # 取出batch个grid，并分为x和y坐标
         grid = self.grid[:x.size(0)]
         grid_x = self.grid_x[:x.size(0)]
         grid_y = self.grid_y[:x.size(0)]
+        # 图片大小不同，上采样值固定大小
         x_small = nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear')
-
+        # MORN输出的offsets map
         offsets = self.cnn(x_small)
         offsets_posi = nn.functional.relu(offsets, inplace=False)
         offsets_nega = nn.functional.relu(-offsets, inplace=False)
