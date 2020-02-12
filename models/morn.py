@@ -60,7 +60,7 @@ class MORN(nn.Module):
 
     def forward(self, x, test, enhance=1, debug=False):
         """
-        MORN前向传播过程
+        MORN前向
         :param x: 输入特征
         :param test: 训练or测试
         :param enhance:
@@ -87,12 +87,16 @@ class MORN(nn.Module):
         offsets_posi = nn.functional.relu(offsets, inplace=False)
         offsets_nega = nn.functional.relu(-offsets, inplace=False)
         offsets_pool = self.pool(offsets_posi) - self.pool(offsets_nega)
-
+        # 按照grid的坐标对offsets_pool进行双线性采样
         offsets_grid = nn.functional.grid_sample(offsets_pool, grid)
+        # transpose后tensor存储的内存空间不连续，tensor.contiguous()使得存储内存空间连续
         offsets_grid = offsets_grid.permute(0, 2, 3, 1).contiguous()
+        # 校正后的坐标位置
         offsets_x = torch.cat([grid_x, grid_y + offsets_grid], 3)
+        # 校正后的图像
         x_rectified = nn.functional.grid_sample(x, offsets_x)
 
+        # 进行多次校正
         for iteration in range(enhance):
             offsets = self.cnn(x_rectified)
 
@@ -103,7 +107,7 @@ class MORN(nn.Module):
             offsets_grid += nn.functional.grid_sample(offsets_pool, grid).permute(0, 2, 3, 1).contiguous()
             offsets_x = torch.cat([grid_x, grid_y + offsets_grid], 3)
             x_rectified = nn.functional.grid_sample(x, offsets_x)
-
+        # debug操作，进行可视化
         if debug:
 
             offsets_mean = torch.mean(offsets_grid.view(x.size(0), -1), 1)
