@@ -128,13 +128,14 @@ class Attention(nn.Module):
         num_labels = text_length.data.sum()
 
         if not test:
-
+            # 需要预测eos，因此多一个step
             targets = torch.zeros(nB, num_steps+1).long()
             if self.cuda:
                 targets = targets.cuda()
             start_id = 0
 
             for i in range(nB):
+                # .data返回tensor，但不能通过autograd追踪求导
                 targets[i][1:1+text_length.data[i]] = text.data[start_id:start_id+text_length.data[i]]+1
                 start_id = start_id+text_length.data[i]
             targets = Variable(targets.transpose(0,1).contiguous(), require_grad=True)
@@ -144,23 +145,25 @@ class Attention(nn.Module):
 
             for i in range(num_steps):
                 cur_embeddings = self.char_embeddings.index_select(0, targets[i])
+                # 根据ht-1,gt,yprev预测t时刻的ht和at
                 hidden, alpha = self.attention_cell(hidden, feats, cur_embeddings, test)
+                # 记录每个时刻的ht
                 output_hiddens[i] = hidden
 
             new_hiddens = Variable(torch.zeros(num_labels, hidden_size).type_as(feats.data) ,require_grad=True)
             b = 0
             start = 0
-
+            # 根据公式wout*st + bout计算概率
             for length in text_length.data:
                 new_hiddens[start:start+length] = output_hiddens[0:length,b,:]
                 start = start + length
                 b = b + 1
-
+            # 概率值yt，softmax后得到归一化的概率值
             probs = self.generator(new_hiddens)
             return probs
 
         else:
-
+            # 预测代码，区别在预测时候没有标签可用，需要用预测值
             hidden = Variable(torch.zeros(nB,hidden_size).type_as(feats.data))
             targets_temp = Variable(torch.zeros(nB).long().contiguous())
             probs = Variable(torch.zeros(nB*num_steps, self.num_classes))
@@ -173,6 +176,7 @@ class Attention(nn.Module):
                 hidden, alpha = self.attention_cell(hidden, feats, cur_embeddings, test)
                 hidden2class = self.generator(hidden)
                 probs[i*nB:(i+1)*nB] = hidden2class
+                # 用预测值代替标签
                 _, targets_temp = hidden2class.max(1)
                 targets_temp += 1
 
@@ -284,10 +288,10 @@ class ASRN(nn.Module):
         # 参数初始化方式，conv和batchnorm的初始化不同
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal(m.weight, mode='fan_out', a=0)
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', a=0)
             elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant(m.weight, 1)
-                nn.init.constant(m.bias, 0)
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, input, length, text, text_rev, test=False):
         """

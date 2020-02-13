@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a6fbdf88-5050-4a0c-af0b-dcad29509db4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/MORAN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MORAN.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/asrn_res.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/asrn_res.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/fracPickup.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/fracPickup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +62,33 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="MORAN" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.test" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -77,7 +102,8 @@
       <updated>1581469980424</updated>
       <workItem from="1581488556789" duration="76000" />
       <workItem from="1581488639621" duration="1478000" />
-      <workItem from="1581559590712" duration="4208000" />
+      <workItem from="1581559590712" duration="9428000" />
+      <workItem from="1581585400448" duration="601000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <created>1581559882375</created>
@@ -86,7 +112,14 @@
       <option name="project" value="LOCAL" />
       <updated>1581559882375</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="update">
+      <created>1581563987037</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1581563987037</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -107,17 +140,54 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="test" />
-    <option name="LAST_COMMIT_MESSAGE" value="test" />
+    <MESSAGE value="update" />
+    <option name="LAST_COMMIT_MESSAGE" value="update" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="560" y="110" key="CommitChangelistDialog2" timestamp="1581559881657">
+    <state x="560" y="110" key="CommitChangelistDialog2" timestamp="1581563986490">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="560" y="110" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581559881657" />
+    <state x="560" y="110" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581563986490" />
+    <state width="1612" height="466" key="DebuggerActiveHint" timestamp="1581564207269">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1612" height="466" key="DebuggerActiveHint/0.0.1920.1040@0.0.1920.1040" timestamp="1581564207269" />
     <state x="699" y="499" key="FileChooserDialogImpl" timestamp="1581561166928">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="699" y="499" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1581561166928" />
+    <state width="1877" height="348" key="GridCell.Tab.0.bottom" timestamp="1581564212165">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1581564212165" />
+    <state width="1877" height="348" key="GridCell.Tab.0.center" timestamp="1581564212165">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1581564212165" />
+    <state width="1877" height="348" key="GridCell.Tab.0.left" timestamp="1581564212164">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1581564212164" />
+    <state width="1877" height="348" key="GridCell.Tab.0.right" timestamp="1581564212165">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1581564212165" />
+    <state width="1877" height="348" key="GridCell.Tab.1.bottom" timestamp="1581564199731">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1581564199731" />
+    <state width="1877" height="348" key="GridCell.Tab.1.center" timestamp="1581564199731">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1581564199731" />
+    <state width="1877" height="348" key="GridCell.Tab.1.left" timestamp="1581564199731">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1581564199731" />
+    <state width="1877" height="348" key="GridCell.Tab.1.right" timestamp="1581564199731">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1581564199731" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1581561171890">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -134,5 +204,8 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="752" y="437" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1040@0.0.1920.1040" timestamp="1581559786513" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/MORAN$test.coverage" NAME="test Coverage Results" MODIFIED="1581564198366" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

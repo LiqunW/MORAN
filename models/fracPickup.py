@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
-import numpy.random as npr
 
 class fracPickup(nn.Module):
-
+    """
+    attention中的FP方法，不只使用at，融合了at+1，用于提升attention的鲁棒性（具体见论文）
+    """
     def __init__(self, CUDA=True):
         super(fracPickup, self).__init__()
         self.cuda = CUDA
@@ -20,15 +21,17 @@ class fracPickup(nn.Module):
         h_list = 1.
         w_list = np.arange(x_shape[3])*2./(x_shape[3]-1)-1
         for i in range(fracPickup_num):
-            idx = int(npr.rand()*len(w_list))
+            # 对attention加入随机部分
+            idx = int(np.random.rand()*len(w_list))
             if idx <= 0 or idx >= x_shape[3]-1:
                 continue
-            beta = npr.rand()/4.
+            beta = np.random.rand()/4.
+            # 根据论文中的公式，求at,k-1和at,k
             value0 = (beta*w_list[idx] + (1-beta)*w_list[idx-1])
             value1 = (beta*w_list[idx-1] + (1-beta)*w_list[idx])
             w_list[idx-1] = value0
             w_list[idx] = value1
-
+        # numpy转成tensor
         grid = np.meshgrid(
                 w_list, 
                 h_list, 
@@ -42,7 +45,7 @@ class fracPickup(nn.Module):
         if self.cuda:
             grid = grid.cuda()
         self.grid = Variable(grid, requires_grad=False)
-
+        # 根据grid对at进行操作，得到fp后的attention权重
         x_offset = nn.functional.grid_sample(x, self.grid)
 
         return x_offset
