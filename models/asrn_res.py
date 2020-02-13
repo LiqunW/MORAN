@@ -256,7 +256,7 @@ class ASRN(nn.Module):
             BidirectionalLSTM(512, nh, nh),
             BidirectionalLSTM(nh, nh, nh),
             )
-
+#up
         self.BidirDecoder = BidirDecoder
         # 是否双向解码
         if self.BidirDecoder:
