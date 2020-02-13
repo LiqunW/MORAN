@@ -66,19 +66,25 @@ class AttentionCell(nn.Module):
         feats_proj = self.i2h(feats.view(-1,nC))
 
         prev_hidden_proj = self.h2h(prev_hidden).view(1,nB, hidden_size).expand(nT, nB, hidden_size).contiguous().view(-1, hidden_size)
+        # 论文中的e_{ti}，上一时刻的状态st-1，加上该时刻隐含层ht
         emition = self.score(torch.nn.functional.tanh(feats_proj + prev_hidden_proj).view(-1, hidden_size)).view(nT,nB)
 
-        alpha = torch.nn.functional.softmax(emition, 0) # nT * nB
+        # attention权重alpha
+        alpha = torch.nn.functional.softmax(emition, 0)  # nT * nB
 
         if not test:
+            # [nB, nT] -->  [nB,1,1,nT] --> [nB,nT]为fp后的attention权重
             alpha_fp = self.fracPickup(alpha.transpose(0,1).contiguous().unsqueeze(1).unsqueeze(2)).squeeze()
-            context = (feats * alpha_fp.transpose(0,1).contiguous().view(nT,nB,1).expand(nT, nB, nC)).sum(0).squeeze(0) # nB * nC
+            # nB * nC attention后的特征
+            context = (feats * alpha_fp.transpose(0,1).contiguous().view(nT,nB,1).expand(nT, nB, nC)).sum(0).squeeze(0)
             if len(context.size()) == 1:
-                context = context.unsqueeze(0)
+                context = context.unsqueeze(0)  # 补batch维度
             context = torch.cat([context, cur_embeddings], 1)
+            # 根据ht-1和特征gt，计算ht
             cur_hidden = self.rnn(context, prev_hidden)
             return cur_hidden, alpha_fp
         else:
+            # 测试阶段不需要随机性，因此去掉fp
             context = (feats * alpha.view(nT,nB,1).expand(nT, nB, nC)).sum(0).squeeze(0) # nB * nC
             if len(context.size()) == 1:
                 context = context.unsqueeze(0)
@@ -88,12 +94,21 @@ class AttentionCell(nn.Module):
 
 class Attention(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes, num_embeddings=128, CUDA=True):
+        """
+
+        :param input_size:输入维度
+        :param hidden_size: 隐含层维度
+        :param num_classes: 类别
+        :param num_embeddings: embedding个数
+        :param CUDA: GPU支持
+        """
         super(Attention, self).__init__()
         self.attention_cell = AttentionCell(input_size, hidden_size, num_embeddings, CUDA=CUDA)
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.generator = nn.Linear(hidden_size, num_classes)
-        self.char_embeddings = Parameter(torch.randn(num_classes+1, num_embeddings))
+        # TODO api修改
+        self.char_embeddings = Parameter(torch.randn(num_classes+1, num_embeddings), requires_grad=True)
         self.num_embeddings = num_embeddings
         self.num_classes = num_classes
         self.cuda = CUDA
@@ -122,17 +137,17 @@ class Attention(nn.Module):
             for i in range(nB):
                 targets[i][1:1+text_length.data[i]] = text.data[start_id:start_id+text_length.data[i]]+1
                 start_id = start_id+text_length.data[i]
-            targets = Variable(targets.transpose(0,1).contiguous())
+            targets = Variable(targets.transpose(0,1).contiguous(), require_grad=True)
 
-            output_hiddens = Variable(torch.zeros(num_steps, nB, hidden_size).type_as(feats.data))
-            hidden = Variable(torch.zeros(nB,hidden_size).type_as(feats.data))
+            output_hiddens = Variable(torch.zeros(num_steps, nB, hidden_size).type_as(feats.data), require_grad=True)
+            hidden = Variable(torch.zeros(nB,hidden_size).type_as(feats.data),  require_grad=True)
 
             for i in range(num_steps):
                 cur_embeddings = self.char_embeddings.index_select(0, targets[i])
                 hidden, alpha = self.attention_cell(hidden, feats, cur_embeddings, test)
                 output_hiddens[i] = hidden
 
-            new_hiddens = Variable(torch.zeros(num_labels, hidden_size).type_as(feats.data))
+            new_hiddens = Variable(torch.zeros(num_labels, hidden_size).type_as(feats.data) ,require_grad=True)
             b = 0
             start = 0
 
@@ -175,6 +190,9 @@ class Attention(nn.Module):
             return probs_res
 
 class Residual_block(nn.Module):
+    """
+    残差模块
+    """
     def __init__(self, c_in, c_out, stride):
         super(Residual_block, self).__init__()
         self.downsample = None
@@ -256,7 +274,6 @@ class ASRN(nn.Module):
             BidirectionalLSTM(512, nh, nh),
             BidirectionalLSTM(nh, nh, nh),
             )
-#up
         self.BidirDecoder = BidirDecoder
         # 是否双向解码
         if self.BidirDecoder:
