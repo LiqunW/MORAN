@@ -15,14 +15,14 @@ from collections import OrderedDict
 from models.moran import MORAN
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_nips', default=r'D:\Work\Dataset\reg_dataset(moran)\svt_p_645',  # TODO 修改路径更换数据集，下同
+parser.add_argument('--train_nips', default=r'/media/wlq/Storage/Work/Dataset/reg_dataset(moran)/svt_647',  # TODO 修改路径更换数据集，下同
                     help='path to dataset')
-parser.add_argument('--train_cvpr', default=r'D:\Work\Dataset\reg_dataset(moran)\svt_p_645',
+parser.add_argument('--train_cvpr', default=r'/media/wlq/Storage/Work/Dataset/reg_dataset(moran)/svt_647',
                     help='path to dataset')
-parser.add_argument('--valroot', default=r'D:\Work\Dataset\reg_dataset(moran)\svt_p_645',
+parser.add_argument('--valroot', default=r'/media/wlq/Storage/Work/Dataset/reg_dataset(moran)/svt_647',
                     help='path to dataset')
-parser.add_argument('--workers', type=int, help='number of data loading workers', default=1)
-parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
+parser.add_argument('--workers', type=int, help='number of data loading workers', default=6)
+parser.add_argument('--batchSize', type=int, default=8, help='input batch size')
 parser.add_argument('--imgH', type=int, default=64, help='the height of the input image to network')
 parser.add_argument('--imgW', type=int, default=200, help='the width of the input image to network')
 parser.add_argument('--targetH', type=int, default=32, help='the width of the input image to network')
@@ -30,7 +30,7 @@ parser.add_argument('--targetW', type=int, default=100, help='the width of the i
 parser.add_argument('--nh', type=int, default=256, help='size of the lstm hidden state')
 parser.add_argument('--niter', type=int, default=10, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate for Critic, default=0.00005')
-parser.add_argument('--cuda', default=False, action='store_true', help='enables cuda')
+parser.add_argument('--cuda', default=True, action='store_true', help='enables cuda')
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--MORAN', default='', help="path to model (to continue training)")
 parser.add_argument('--alphabet', type=str, default='0:1:2:3:4:5:6:7:8:9:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:$') # 37类，$为终止符
@@ -165,8 +165,8 @@ def val(dataset, criterion, max_iter=1000):
         if opt.BidirDecoder:
             cpu_images, cpu_texts, cpu_texts_rev = data
             utils.loadData(image, cpu_images)
-            t, l = converter.encode(cpu_texts, scanned=True)
-            t_rev, _ = converter.encode(cpu_texts_rev, scanned=True)
+            t, l = converter.encode(cpu_texts, scanned=True) # label convert
+            t_rev, _ = converter.encode(cpu_texts_rev, scanned=True)  # rev label，用于双向lstm
             utils.loadData(text, t)
             utils.loadData(text_rev, t_rev)
             utils.loadData(length, l)
@@ -199,7 +199,7 @@ def val(dataset, criterion, max_iter=1000):
             _, preds = preds.max(1)
             preds = preds.view(-1)
             sim_preds = converter.decode(preds.data, length.data)
-
+        # cal acc
         loss_avg.add(cost)
         for pred, target in zip(sim_preds, cpu_texts):
             if pred == target.lower():
@@ -213,7 +213,7 @@ def val(dataset, criterion, max_iter=1000):
 
 
 def trainBatch():
-    # 获取一个batch的数据
+    # 获取一个batch的数据 [images,label]
     data = train_iter.next()
     if opt.BidirDecoder:
         cpu_images, cpu_texts, cpu_texts_rev = data
@@ -223,14 +223,17 @@ def trainBatch():
         utils.loadData(text, t)
         utils.loadData(text_rev, t_rev)
         utils.loadData(length, l)
+        # 双向lstm有两个结果
         preds0, preds1 = MORAN(image, length, text, text_rev)
         cost = criterion(torch.cat([preds0, preds1], 0), torch.cat([text, text_rev], 0))
     else:
         cpu_images, cpu_texts = data
         utils.loadData(image, cpu_images)
+        # 标签和每个标签的长度
         t, l = converter.encode(cpu_texts, scanned=True)
         utils.loadData(text, t)
         utils.loadData(length, l)
+        # 单向lstm一个结果
         preds = MORAN(image, length, text, text_rev)
         cost = criterion(preds, text)
 
@@ -243,10 +246,12 @@ t0 = time.time()
 acc = 0
 acc_tmp = 0
 for epoch in range(opt.niter):
+    #for train_data in train_loader:
+    #    print(train_data)
     train_iter = iter(train_loader)
     i = 0
     while i < len(train_loader):
-
+        # validation
         if i % opt.valInterval == 0:
             for p in MORAN.parameters():
                 p.requires_grad = False

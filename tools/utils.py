@@ -52,7 +52,7 @@ class strLabelConverterForAttention(object):
 
     def encode(self, text, scanned=True):
         """Support batch or single str.
-
+        标签转tensor
         Args:
             text (str or list of str): texts to convert.
 
@@ -78,7 +78,7 @@ class strLabelConverterForAttention(object):
 
     def decode(self, t, length):
         """Decode encoded texts back into strs.
-
+        tensor转标签
         Args:
             torch.IntTensor [length_0 + length_1 + ... length_{n - 1}]: encoded texts.
             torch.IntTensor [n]: length of each text.
@@ -135,10 +135,10 @@ class averager(object):
 
 def loadData(v, data):
     """
-    将numpy数据复制到pytorch变量中
-    :param v: viarable
-    :param data: 数据
-    :return: tensor
+    根据版本选择api，将data载入variable
+    :param v: variable
+    :param data: data
+    :return: resized data
     """
     major, _ = get_torch_version()
 
