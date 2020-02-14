@@ -134,6 +134,12 @@ class averager(object):
         return res
 
 def loadData(v, data):
+    """
+    将numpy数据复制到pytorch变量中
+    :param v: viarable
+    :param data: 数据
+    :return: tensor
+    """
     major, _ = get_torch_version()
 
     if major >= 1:

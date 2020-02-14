@@ -13,11 +13,7 @@ import tools.dataset as dataset
 import time
 from collections import OrderedDict
 from models.moran import MORAN
-<<<<<<< HEAD
 
-=======
-# ubuntu test
->>>>>>> fd43bbc73d0e3b6a2e57484dfa7167e07db84d2d
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_nips', default=r'D:\Work\Dataset\reg_dataset(moran)\svt_p_645',  # TODO 修改路径更换数据集，下同
                     help='path to dataset')
