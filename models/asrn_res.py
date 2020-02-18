@@ -107,7 +107,6 @@ class Attention(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.generator = nn.Linear(hidden_size, num_classes)
-        # TODO api修改
         self.char_embeddings = Parameter(torch.randn(num_classes+1, num_embeddings), requires_grad=True)
         self.num_embeddings = num_embeddings
         self.num_classes = num_classes
@@ -138,10 +137,10 @@ class Attention(nn.Module):
                 # .data返回tensor，但不能通过autograd追踪求导
                 targets[i][1:1+text_length.data[i]] = text.data[start_id:start_id+text_length.data[i]]+1
                 start_id = start_id+text_length.data[i]
-            targets = Variable(targets.transpose(0,1).contiguous(), require_grad=True)
+            targets = Variable(targets.transpose(0,1).contiguous())
 
-            output_hiddens = Variable(torch.zeros(num_steps, nB, hidden_size).type_as(feats.data), require_grad=True)
-            hidden = Variable(torch.zeros(nB,hidden_size).type_as(feats.data),  require_grad=True)
+            output_hiddens = Variable(torch.zeros(num_steps, nB, hidden_size).type_as(feats.data))
+            hidden = Variable(torch.zeros(nB,hidden_size).type_as(feats.data))
 
             for i in range(num_steps):
                 cur_embeddings = self.char_embeddings.index_select(0, targets[i])

@@ -39,7 +39,7 @@ class MORN(nn.Module):
         # shape (100,) value [-1,1]
         w_list = np.arange(self.targetW)*2./(self.targetW-1)-1
 
-        # 生成原图坐标矩阵basic grid [2,32,100] top-left(-1,-1)
+        # 生成坐标矩阵grid [2,32,100] top-left(-1,-1)
         grid = np.meshgrid(
                 w_list, 
                 h_list, 
@@ -67,9 +67,9 @@ class MORN(nn.Module):
         :param debug: debug模式
         :return:校正后的图像
         """
-
+        # 加入随机性，asrn预测未矫正的原图
         if not test and np.random.random() > 0.5:
-            return nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear') # 特征上采样至原图大小
+            return nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear')
         if not test:
             enhance = 0
 
@@ -80,12 +80,13 @@ class MORN(nn.Module):
         grid = self.grid[:x.size(0)]
         grid_x = self.grid_x[:x.size(0)]
         grid_y = self.grid_y[:x.size(0)]
-        # 图片大小不同，上采样值固定大小
+        # 采样至32*100
         x_small = nn.functional.upsample(x, size=(self.targetH, self.targetW), mode='bilinear')
         # MORN输出的offsets map
         offsets = self.cnn(x_small)
         offsets_posi = nn.functional.relu(offsets, inplace=False)
         offsets_nega = nn.functional.relu(-offsets, inplace=False)
+        # 3*11块区域
         offsets_pool = self.pool(offsets_posi) - self.pool(offsets_nega)
         # 按照grid的坐标对offsets_pool进行双线性采样
         offsets_grid = nn.functional.grid_sample(offsets_pool, grid)
